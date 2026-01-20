@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Photo & Video Tool</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+body{
+    margin:0;
+    background:#0f172a;
+    color:#fff;
+    font-family:Arial, sans-serif;
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.container{
+    background:#1e293b;
+    padding:30px;
+    width:320px;
+    border-radius:14px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+h2{
+    margin-bottom:20px;
+}
+button{
+    width:100%;
+    padding:14px;
+    margin:12px 0;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    font-weight:bold;
+}
+.photo{
+    background:#22c55e;
+    color:#000;
+}
+.video{
+    background:#38bdf8;
+    color:#000;
+}
+.status{
+    margin-top:10px;
+    font-size:14px;
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>AI Media Processor</h2>
+
+    <button class="photo" onclick="openPhoto()">📷 Photo Upload</button>
+    <input type="file" id="photoInput" accept="image/*" hidden>
+
+    <button class="video" onclick="openVideo()">🎥 Video Upload</button>
+    <input type="file" id="videoInput" accept="video/*" hidden>
+
+    <div class="status" id="status">Processing...</div>
+</div>
+
+<script>
+const BACKEND_URL = "https://lm-ai-backend.onrender.com"; 
+// 🔺 Backend Deploy হলে URL ঠিক দিন
+
+const photoInput = document.getElementById("photoInput");
+const videoInput = document.getElementById("videoInput");
+const statusText = document.getElementById("status");
+
+function openPhoto(){
+    photoInput.click();
+}
+
+function openVideo(){
+    videoInput.click();
+}
+
+photoInput.onchange = () => {
+    if(photoInput.files.length){
+        uploadFile(photoInput.files[0], "/process-photo");
+    }
+};
+
+videoInput.onchange = () => {
+    if(videoInput.files.length){
+        uploadFile(videoInput.files[0], "/process-video");
+    }
+};
+
+function uploadFile(file, endpoint){
+    statusText.style.display = "block";
+    statusText.innerText = "Uploading & Processing...";
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch(BACKEND_URL + endpoint, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => {
+        if(!res.ok) throw new Error("Backend error");
+        return res.blob();
+    })
+    .then(blob => {
+        statusText.innerText = "Download ready";
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name;
+        link.click();
+
+        statusText.style.display = "none";
+    })
+    .catch(() => {
+        statusText.innerText = "Backend not connected";
+    });
+}
+</script>
+
+</body>
+</html>
